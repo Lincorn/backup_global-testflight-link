@@ -1,0 +1,35 @@
+name: Sync global-testflight-link Repository
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天 UTC 时间午夜触发同步
+  workflow_dispatch:    # 支持手动触发同步
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "Lincorn"   # 替换为你的 GitHub 用户名
+          git config --global user.email "lincorn@example.com"     # 替换为你的 GitHub 邮箱
+
+      - name: Clone global-testflight-link repository
+        run: |
+          git clone https://github.com/fmz200/global-testflight-link.git temp-sync
+          cp -r temp-sync/* .
+          rm -rf temp-sync
+
+      - name: Commit and push changes if any
+        run: |
+          git add .
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Sync latest from fmz200/global-testflight-link"
+            git push origin main
+          else
+            echo "No changes detected, skipping commit."
+          fi
